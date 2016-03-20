@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Model A Simulation
+GenericName=Model A Simulation Application
+Comment=Simulates Model A in real time with adjustable parameters
+Categories=GTK;Science;
+Exec=ModelA
+Icon=application-default-icon
+Terminal=False
+X-GNOME-Gettext-Domain=ModelA
+X-GNOME-Keywords=Model;A;Simulation;
