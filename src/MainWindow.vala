@@ -1,0 +1,103 @@
+/* Copyright 2016 Nathan Smith
+*
+* This file is part of Model A Simulation.
+*
+* Model A Simulation is free software: you can redistribute it
+* and/or modify it under the terms of the GNU General Public License as
+* published by the Free Software Foundation, either version 3 of the
+* License, or (at your option) any later version.
+*
+* Model A Simulation is distributed in the hope that it will be
+* useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+* Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along
+* with Model A Simulation. If not, see http://www.gnu.org/licenses/.
+*/
+
+using Gtk;          // Gui Implimentation
+using Cairo;        // Drawing from a Pixel Buffer
+
+public class Application : Window
+{
+    private Scale r_slider;         // r adjustment value
+    private Label r_label;          // Label for sliders
+    private Scale T_slider;         // Noise adjustment value
+    private Label T_label;          // Label for noise value
+    private PlotArea plot;          // Plotting area for Simulation
+    private Image img;              // Image of equations
+    private Simulation simul;       // Simulation Object
+
+    public Application (int N)
+    {
+        this.title = "Model A Simulation";
+        this.window_position = WindowPosition.CENTER;
+        this.destroy.connect (Gtk.main_quit);
+        this.set_default_size (N, N);
+        this.set_border_width(6);
+
+        simul = new Simulation (N);
+        plot = new PlotArea (N, N);
+        img = new Gtk.Image.from_file ("./img/math_img.svg");
+
+        var vbox = new Gtk.Box (Orientation.VERTICAL, 0);
+        var rbox = make_slider("r", -1, 1, 0.01, out r_slider, out r_label);
+        var noisebox = make_slider("noise", 0, 5, 0.01, out T_slider, out T_label);
+
+        vbox.homogeneous = false;
+        vbox.pack_start (img, false, false, 4);
+        vbox.pack_start (plot, true, true, 4);
+        vbox.pack_start (rbox, false, false, 4);
+        vbox.pack_start (noisebox, false, false, 4);
+        this.add (vbox);
+
+        connect_sliders();
+
+        update();
+        Timeout.add (100, update);
+    }
+
+    private bool update()
+    {
+        simul.time_step();
+        plot.update_data(simul.get_field());
+        queue_draw();
+        return true;
+    }
+
+    private void connect_sliders()
+    {
+        r_slider.adjustment.value_changed.connect(() => {
+            simul.set_r(r_slider.adjustment.value);
+        });
+        T_slider.adjustment.value_changed.connect(() => {
+            simul.set_T(T_slider.adjustment.value);
+        });
+    }
+
+    private Box make_slider (string label, double min, double max, double step, out Scale s,out Label l)
+    {
+        s = new Scale.with_range (Orientation.HORIZONTAL, min, max, step);
+        l = new Label (label);
+        s.set_value_pos (PositionType.LEFT);
+        s.adjustment.value = min;
+
+        var box = new Box (Orientation.HORIZONTAL, 0);
+        box.pack_start (l, false, false, 5);
+        box.pack_start (s, true, true, 5);
+        return box;
+    }
+
+    public static int main (string[] args)
+    {
+
+        Gtk.init (ref args);
+        var window = new Application (600);
+        window.show_all ();
+
+        Gtk.main ();
+        return 0;
+    }
+
+}
