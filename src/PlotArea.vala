@@ -53,7 +53,7 @@ public class PlotArea : DrawingArea{
     public void update_data (double[] field){
         int width = buffer.get_width ();
         int height = buffer.get_height ();
-*        unowned uint8[] pixels = buffer.get_pixels ();
+        unowned uint8[] pixels = buffer.get_pixels ();
         for (int i = 0; i<width*height ; i++){
             pixels[3*i + 0] = (uint8)((field[i]+ 10)*255.0/20.0);
             pixels[3*i + 1] = (uint8)((field[i]+ 10)*255.0/20.0);
