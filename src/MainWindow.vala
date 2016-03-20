@@ -31,11 +31,11 @@ public class Application : Window
 
     public Application (int N)
     {
-        this.title = "Model A Simulation";
-        this.window_position = WindowPosition.CENTER;
-        this.destroy.connect (Gtk.main_quit);
-        this.set_default_size (N, N);
-        this.set_border_width(6);
+        this.title = "Model A Simulation";              // Title
+        this.window_position = WindowPosition.CENTER;   // Position
+        this.destroy.connect (Gtk.main_quit);           // Connect exit
+        this.set_default_size (N, N);                   // Dim of simulation
+        this.set_border_width(6);               // Make small border
 
         simul = new Simulation (N);
         plot = new PlotArea (N, N);
@@ -60,6 +60,7 @@ public class Application : Window
 
     private bool update()
     {
+        /* Update simulation when timeout occurs */
         simul.time_step();
         plot.update_data(simul.get_field());
         queue_draw();
@@ -68,6 +69,7 @@ public class Application : Window
 
     private void connect_sliders()
     {
+        /* Connect sliders to simulation adjustments */
         r_slider.adjustment.value_changed.connect(() => {
             simul.set_r(r_slider.adjustment.value);
         });
@@ -76,8 +78,11 @@ public class Application : Window
         });
     }
 
-    private Box make_slider (string label, double min, double max, double step, out Scale s,out Label l)
+    private Box make_slider (string label, double min,
+                             double max, double step,
+                             out Scale s,out Label l)
     {
+        /* Make generic slider box */
         s = new Scale.with_range (Orientation.HORIZONTAL, min, max, step);
         l = new Label (label);
         s.set_value_pos (PositionType.LEFT);
@@ -91,7 +96,7 @@ public class Application : Window
 
     public static int main (string[] args)
     {
-
+        /* Main loop */
         Gtk.init (ref args);
         var window = new Application (600);
         window.show_all ();
