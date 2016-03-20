@@ -1,5 +1,5 @@
 all:
-	valac --pkg gsl --pkg gtk+-3.0 --pkg cairo ./src/hello.vala
+	valac --pkg gsl --pkg gtk+-3.0 --pkg cairo ./src/ModelA.vala
 
 clean:
-	rm hello
+	rm ModelA
