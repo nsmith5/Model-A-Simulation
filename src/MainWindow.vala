@@ -1,20 +1,20 @@
 /* Copyright 2016 Nathan Smith
-*
-* This file is part of Model A Simulation.
-*
-* Model A Simulation is free software: you can redistribute it
-* and/or modify it under the terms of the GNU General Public License as
-* published by the Free Software Foundation, either version 3 of the
-* License, or (at your option) any later version.
-*
-* Model A Simulation is distributed in the hope that it will be
-* useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
-* Public License for more details.
-*
-* You should have received a copy of the GNU General Public License along
-* with Model A Simulation. If not, see http://www.gnu.org/licenses/.
-*/
+ *
+ * This file is part of Model A Simulation.
+ *
+ * Model A Simulation is free software: you can redistribute it
+ * and/or modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Model A Simulation is distributed in the hope that it will be
+ * useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with Model A Simulation. If not, see http://www.gnu.org/licenses/.
+ */
 
 using Gtk;          // Gui Implimentation
 using Cairo;        // Drawing from a Pixel Buffer
@@ -25,6 +25,8 @@ public class Application : Window
     private Label r_label;          // Label for sliders
     private Scale T_slider;         // Noise adjustment value
     private Label T_label;          // Label for noise value
+    private Scale W_slider;         // Interface energy scale
+    private Label W_label;          // Label for W
     private PlotArea plot;          // Plotting area for Simulation
     private Image img;              // Image of equations
     private Simulation simul;       // Simulation Object
@@ -43,13 +45,15 @@ public class Application : Window
 
         var vbox = new Gtk.Box (Orientation.VERTICAL, 0);
         var rbox = make_slider("r", -1, 1, 0.01, out r_slider, out r_label);
-        var noisebox = make_slider("noise", 0, 5, 0.01, out T_slider, out T_label);
+        var noisebox = make_slider("\u03BE", 0, 5, 0.01, out T_slider, out T_label);
+        var wbox = make_slider("W", 0.0, 2.0, 0.01, out W_slider, out W_label);
 
         vbox.homogeneous = false;
         vbox.pack_start (img, false, false, 4);
         vbox.pack_start (plot, true, true, 4);
         vbox.pack_start (rbox, false, false, 4);
         vbox.pack_start (noisebox, false, false, 4);
+        vbox.pack_start (wbox, false, false, 4);
         this.add (vbox);
 
         connect_sliders();
@@ -75,6 +79,9 @@ public class Application : Window
         });
         T_slider.adjustment.value_changed.connect(() => {
             simul.set_T(T_slider.adjustment.value);
+        });
+        W_slider.adjustment.value_changed.connect(() => {
+            simul.set_W(W_slider.adjustment.value);
         });
     }
 
