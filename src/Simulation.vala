@@ -39,23 +39,27 @@ public class Simulation
     private Gsl.RNG rng;
     private RNGType* T;
 
-    public Simulation (int N){
-        this.phi = new double[N*N];
-        this.eta = new double[N*N];
-        this.temp = new double[N*N];
-        this.D = 1.0;
-        this.dx = 1.0;
-        this.dt = 0.1;
-        this.r = 0.0;
-        this.u = 1.0;
-        this.W = 0.5;
-        this.KbT = 0.1;
+    public Simulation (int N)
+    {
+        // Initialize parameters and fields
+        phi = new double[N*N];
+        eta = new double[N*N];
+        temp = new double[N*N];
+        D = 1.0;
+        dx = 1.0;
+        dt = 0.1;
+        r = 0.0;
+        u = 1.0;
+        W = 0.5;
+        KbT = 0.1;
         this.N = N;
 
+        // Initialize random number generator
         T = (RNGType*)RNGTypes.default;
         RNG.env_setup ();
         rng = new RNG (T);
 
+        // Fill up fields with initial conditions
         for (int i = 0; i<N*N; i++){
             phi[i] = Randist.gaussian(rng, 0.0001);
             eta[i] = 0.0;
@@ -63,7 +67,9 @@ public class Simulation
         return;
     }
 
-    public void time_step (){
+    public void time_step ()
+    {
+        // Perform one Euler time step
         laplacian ();
         make_noise ();
         nonlinear_term ();
@@ -73,28 +79,50 @@ public class Simulation
         return;
     }
 
-    public double[] get_field (){
+    public double[] calculate_correlation ()
+    {
+        double[] correlation = new double[N];
+        for (int i = 0; i<N; i++)
+        {
+            correlation[i] = 0.0;
+            for (int j = 0; j<N; j++)
+            {
+                correlation[i] += phi[i*N+j]*phi[i*N];
+            }
+            correlation[i] /= N;
+        }
+        return correlation;
+    }
+
+    public double[] get_field ()
+    {
         return phi;
     }
 
-    public void set_r (double new_r){
+    public void set_r (double new_r)
+    {
         r = new_r;
         return;
     }
 
-    public void set_T (double new_T){
+    public void set_T (double new_T)
+    {
         KbT = new_T;
         return;
     }
 
-    public void set_W (double new_W){
+    public void set_W (double new_W)
+    {
         W = new_W;
         return;
     }
 
-    private void laplacian (){
-        for (int i = 0; i<N; i++){
-            for (int j = 0; j<N; j++){
+    private void laplacian ()
+    {
+        for (int i = 0; i<N; i++)
+        {
+            for (int j = 0; j<N; j++)
+            {
                 temp[i*N + j] = -4*phi[i*N+j] + phi[((i+1+N)%N)*N+j]
                                 + phi[((i-1+N)%N)*N+j]
                                 + phi[i*N+((j-1+N)%N)]
@@ -105,16 +133,21 @@ public class Simulation
         return;
     }
 
-    private void make_noise (){
-        for (int i = 0; i<N*N; i++){
+    private void make_noise ()
+    {
+        for (int i = 0; i<N*N; i++)
+        {
             eta[i] = Randist.gaussian(rng, KbT);
         }
         return;
     }
 
-    private void nonlinear_term (){
-        for (int i = 0; i<N; i++){
-            for (int j = 0; j<N; j++){
+    private void nonlinear_term ()
+    {
+        for (int i = 0; i<N; i++)
+        {
+            for (int j = 0; j<N; j++)
+            {
                 temp[i*N+j]  = dt*D*(W*temp[i*N+j] - r*phi[i*N+j] -
                                 0.166666*u*phi[i*N+j]*phi[i*N+j]*phi[i*N+j]) +
                                 dt*eta[i*N+j];

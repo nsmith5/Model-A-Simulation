@@ -3,4 +3,4 @@ all:
 	./src/PlotArea.vala ./src/MainWindow.vala -o 'Model A Simulation'
 
 clean:
-	rm MainWindow
+	rm 'Model A Simulation'

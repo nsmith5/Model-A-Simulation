@@ -27,9 +27,9 @@ public class Application : Window
     private Label T_label;          // Label for noise value
     private Scale W_slider;         // Interface energy scale
     private Label W_label;          // Label for W
-    private PlotArea plot;          // Plotting area for Simulation
-    private Image img;              // Image of equations
-    private Simulation simul;       // Simulation Object
+    private PlotImage plotarea;      // Plotting area for Simulation
+    private Image image;            // Image of equations
+    private Simulation simulation;  // Simulation Object
 
     public Application (int N)
     {
@@ -37,11 +37,11 @@ public class Application : Window
         this.window_position = WindowPosition.CENTER;   // Position
         this.destroy.connect (Gtk.main_quit);           // Connect exit
         this.set_default_size (N, N);                   // Dim of simulation
-        this.set_border_width(6);               // Make small border
+        this.set_border_width(10);               // Make small border
 
-        simul = new Simulation (N);
-        plot = new PlotArea (N, N);
-        img = new Gtk.Image.from_file ("./img/math_img.svg");
+        simulation = new Simulation (N);
+        plotarea = new PlotArea (N, N);
+        image = new Gtk.Image.from_file ("./img/math_img.svg");
 
         var vbox = new Gtk.Box (Orientation.VERTICAL, 0);
         var rbox = make_slider("r", -1, 1, 0.01, out r_slider, out r_label);
@@ -49,39 +49,39 @@ public class Application : Window
         var wbox = make_slider("W", 0.0, 2.0, 0.01, out W_slider, out W_label);
 
         vbox.homogeneous = false;
-        vbox.pack_start (img, false, false, 4);
-        vbox.pack_start (plot, true, true, 4);
-        vbox.pack_start (rbox, false, false, 4);
+	    vbox.pack_start (rbox, false, false, 4);
         vbox.pack_start (noisebox, false, false, 4);
         vbox.pack_start (wbox, false, false, 4);
+        vbox.pack_start (plotarea, true, true, 14);
+        vbox.pack_start (image, false, false, 4);
         this.add (vbox);
 
         connect_sliders();
 
-        update();
+        update ();
         Timeout.add (100, update);
     }
 
-    private bool update()
+    private bool update ()
     {
         /* Update simulation when timeout occurs */
-        simul.time_step();
-        plot.update_data(simul.get_field());
-        queue_draw();
+        simulation.time_step ();
+        plotarea.update_data (simulation.get_field ());
+        queue_draw ();
         return true;
     }
 
-    private void connect_sliders()
+    private void connect_sliders ()
     {
         /* Connect sliders to simulation adjustments */
         r_slider.adjustment.value_changed.connect(() => {
-            simul.set_r(r_slider.adjustment.value);
+            simulation.set_r (r_slider.adjustment.value);
         });
         T_slider.adjustment.value_changed.connect(() => {
-            simul.set_T(T_slider.adjustment.value);
+            simulation.set_T (T_slider.adjustment.value);
         });
         W_slider.adjustment.value_changed.connect(() => {
-            simul.set_W(W_slider.adjustment.value);
+            simulation.set_W (W_slider.adjustment.value);
         });
     }
 
@@ -103,11 +103,9 @@ public class Application : Window
 
     public static int main (string[] args)
     {
-        /* Main loop */
         Gtk.init (ref args);
         var window = new Application (600);
         window.show_all ();
-
         Gtk.main ();
         return 0;
     }
