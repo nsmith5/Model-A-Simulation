@@ -20,48 +20,39 @@ using Gsl;
 
 public class Simulation
 {
-    /*
-     *      Phi^4 Simulation Object
-     *  contains field data and time step methods
-     */
-
     private double[] phi;
+    private double[] phi_cpy;
     private double[] eta;
     private double[] temp;
-    private double D;
-    private double r;
-    private double u;
-    private double KbT;
-    private double W;
-    private double dx;
-    private double dt;
-    private int N;
-    private Gsl.RNG rng;
-    private RNGType* T;
+    private const double D = 1.0;       // Diffusion Constant
+    private const double u = 1.0;       // Quartic coupling
+    private const double dx = 1.0;      // Lattice spacing
+    private const double dt = 0.1;      // Time step size
+    private double r;               // Quadratic coupling
+    private double KbT;             // Noise temperature
+    private double W;               // Interface energy
+    private int N;                  // Number of grid points
+    private Gsl.RNG rng;            // Random number generator
+    private RNGType* T;             // RNG type
 
     public Simulation (int N)
     {
         // Initialize parameters and fields
         phi = new double[N*N];
+        phi_cpy = new double[N*N];
         eta = new double[N*N];
         temp = new double[N*N];
-        D = 1.0;
-        dx = 1.0;
-        dt = 0.1;
         r = 0.0;
-        u = 1.0;
-        W = 0.5;
+        W = 1.0;
         KbT = 0.1;
         this.N = N;
-
         // Initialize random number generator
         T = (RNGType*)RNGTypes.default;
         RNG.env_setup ();
         rng = new RNG (T);
-
         // Fill up fields with initial conditions
         for (int i = 0; i<N*N; i++){
-            phi[i] = Randist.gaussian(rng, 0.0001);
+            phi[i] = Randist.gaussian(rng, 0.01);
             eta[i] = 0.0;
         }
         return;
@@ -76,20 +67,31 @@ public class Simulation
         for (int i = 0; i<N*N; i++){
             phi[i] += temp[i];
         }
-        return;
+    }
+
+    public void cpy_data ()
+    {
+        for (int i = 0; i<N*N; i++)
+        {
+            phi_cpy[i] = phi[i];
+        }
     }
 
     public double[] calculate_correlation ()
     {
-        double[] correlation = new double[N];
-        for (int i = 0; i<N; i++)
+        double[] correlation = new double[N>>1];
+        for (int l = 0; l<N>>1; l++)
         {
-            correlation[i] = 0.0;
-            for (int j = 0; j<N; j++)
+            correlation[l] = 0.0;
+            for (int i = 0; i<N; i++)
             {
-                correlation[i] += phi[i*N+j]*phi[i*N];
+                for (int j = 0; j<N; j++)
+                {
+                    correlation[l] += phi_cpy[i*N + j]*phi_cpy[i*N + (j + l)%N];
+                    correlation[l] += phi_cpy[i*N + j]*phi_cpy[i*N + (j - l + N)%N];
+                }
             }
-            correlation[i] /= N;
+            correlation[l] /= 2*N*N;
         }
         return correlation;
     }

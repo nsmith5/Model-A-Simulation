@@ -27,7 +27,8 @@ public class Application : Window
     private Label T_label;          // Label for noise value
     private Scale W_slider;         // Interface energy scale
     private Label W_label;          // Label for W
-    private PlotImage plotarea;      // Plotting area for Simulation
+    private PlotImage plotarea;     // Plotting area for Simulation
+    private PlotCurve plotter;      // Correlation function plotter
     private Image image;            // Image of equations
     private Simulation simulation;  // Simulation Object
 
@@ -37,10 +38,11 @@ public class Application : Window
         this.window_position = WindowPosition.CENTER;   // Position
         this.destroy.connect (Gtk.main_quit);           // Connect exit
         this.set_default_size (N, N);                   // Dim of simulation
-        this.set_border_width(10);               // Make small border
+        this.set_border_width(10);                      // Make small border
 
         simulation = new Simulation (N);
-        plotarea = new PlotArea (N, N);
+        plotter = new PlotCurve (N>>1, simulation.calculate_correlation());
+        plotarea = new PlotImage (N, N);
         image = new Gtk.Image.from_file ("./img/math_img.svg");
 
         var vbox = new Gtk.Box (Orientation.VERTICAL, 0);
@@ -53,22 +55,33 @@ public class Application : Window
         vbox.pack_start (noisebox, false, false, 4);
         vbox.pack_start (wbox, false, false, 4);
         vbox.pack_start (plotarea, true, true, 14);
+        vbox.pack_start (plotter, true, true, 14);
         vbox.pack_start (image, false, false, 4);
         this.add (vbox);
 
         connect_sliders();
-
-        update ();
-        Timeout.add (100, update);
+        timestep();
+        draw_field();
+        do_correlation();
     }
 
-    private bool update ()
+    public void timestep ()
     {
-        /* Update simulation when timeout occurs */
         simulation.time_step ();
-        plotarea.update_data (simulation.get_field ());
-        queue_draw ();
-        return true;
+    }
+
+    public void draw_field ()
+    {
+        // Draw the field
+        plotarea.update_data (simulation.get_field());
+        queue_draw();
+    }
+
+    public void do_correlation ()
+    {
+        // Calcuate and plot correlation
+        plotter.set_data (simulation.calculate_correlation ());
+        queue_draw();
     }
 
     private void connect_sliders ()
@@ -83,6 +96,9 @@ public class Application : Window
         W_slider.adjustment.value_changed.connect(() => {
             simulation.set_W (W_slider.adjustment.value);
         });
+        r_slider.adjustment.set_value(0.0);
+        W_slider.adjustment.set_value(1.0);
+        T_slider.adjustment.set_value(0.1);
     }
 
     private Box make_slider (string label, double min,
@@ -100,14 +116,37 @@ public class Application : Window
         box.pack_start (s, true, true, 5);
         return box;
     }
+}
 
-    public static int main (string[] args)
-    {
+void main (string[] args)
+{
         Gtk.init (ref args);
-        var window = new Application (600);
+        var window = new Application (500);
         window.show_all ();
-        Gtk.main ();
-        return 0;
-    }
 
+        var idle = new IdleSource ();
+        var corr_timeout = new TimeoutSource (5000);
+        var draw_timeout = new TimeoutSource (100);
+
+        idle.set_callback( () => {
+            window.timestep ();
+            return true;
+        });
+
+        corr_timeout.set_callback( () => {
+            window.do_correlation ();
+            return true;
+        });
+
+        draw_timeout.set_callback(() => {
+            window.draw_field ();
+            return true;
+        });
+
+        idle.attach(null);
+        corr_timeout.attach(null);
+        draw_timeout.attach(null);
+
+        Gtk.main ();
+        return;
 }
