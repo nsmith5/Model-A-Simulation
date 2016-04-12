@@ -38,7 +38,7 @@ public class Application : Window
         this.window_position = WindowPosition.CENTER;   // Position
         this.destroy.connect (Gtk.main_quit);           // Connect exit
         this.set_default_size (N, N);                   // Dim of simulation
-        this.set_border_width(10);                      // Make small border
+        this.set_border_width (10);                     // Make small border
 
         simulation = new Simulation (N);
         plotter = new PlotCurve (N>>1, simulation.calculate_correlation());
@@ -46,9 +46,9 @@ public class Application : Window
         image = new Gtk.Image.from_file ("./img/math_img.svg");
 
         var vbox = new Gtk.Box (Orientation.VERTICAL, 0);
-        var rbox = make_slider("r", -1, 1, 0.01, out r_slider, out r_label);
-        var noisebox = make_slider("\u03BE", 0, 5, 0.01, out T_slider, out T_label);
-        var wbox = make_slider("W", 0.0, 2.0, 0.01, out W_slider, out W_label);
+        var rbox = make_slider ("r", -1, 1, 0.01, out r_slider, out r_label);
+        var noisebox = make_slider ("\u03BE", 0, 5, 0.01, out T_slider, out T_label);
+        var wbox = make_slider ("W", 0.0, 2.0, 0.01, out W_slider, out W_label);
 
         vbox.homogeneous = false;
 	    vbox.pack_start (rbox, false, false, 4);
@@ -59,10 +59,10 @@ public class Application : Window
         vbox.pack_start (image, false, false, 4);
         this.add (vbox);
 
-        connect_sliders();
-        timestep();
-        draw_field();
-        do_correlation();
+        connect_sliders ();
+        timestep ();
+        draw_field ();
+        do_correlation ();
     }
 
     public void timestep ()
@@ -72,8 +72,7 @@ public class Application : Window
 
     public void draw_field ()
     {
-        // Draw the field
-        plotarea.update_data (simulation.get_field());
+        plotarea.update_data (simulation.get_field ());
         queue_draw();
     }
 
@@ -81,12 +80,22 @@ public class Application : Window
     {
         // Calcuate and plot correlation
         plotter.set_data (simulation.calculate_correlation ());
-        queue_draw();
+        //queue_draw();
     }
 
     private void connect_sliders ()
     {
-        /* Connect sliders to simulation adjustments */
+        /*
+         * Connect sliders to simulation adjustments
+         *
+         *  - each slider emits a signal when it's
+         * value has changed. Connecting the set_'parameter'
+         * functions of the simulation to these signals
+         * means that the when the slider is moved, the
+         * corresponding paramter is changed in the
+         * simulation
+         *
+         */
         r_slider.adjustment.value_changed.connect(() => {
             simulation.set_r (r_slider.adjustment.value);
         });
@@ -105,7 +114,10 @@ public class Application : Window
                              double max, double step,
                              out Scale s,out Label l)
     {
-        /* Make generic slider box */
+        /*
+         * Make a box containing a label on the left of
+         * a horizontal slider
+         */
         s = new Scale.with_range (Orientation.HORIZONTAL, min, max, step);
         l = new Label (label);
         s.set_value_pos (PositionType.LEFT);
@@ -125,7 +137,7 @@ void main (string[] args)
         window.show_all ();
 
         var idle = new IdleSource ();
-        var corr_timeout = new TimeoutSource (5000);
+        // var corr_timeout = new TimeoutSource (5000);
         var draw_timeout = new TimeoutSource (100);
 
         idle.set_callback( () => {
@@ -133,10 +145,10 @@ void main (string[] args)
             return true;
         });
 
-        corr_timeout.set_callback( () => {
-            window.do_correlation ();
-            return true;
-        });
+        //corr_timeout.set_callback( () => {
+        //   window.do_correlation ();
+        //   return true;
+        //});
 
         draw_timeout.set_callback(() => {
             window.draw_field ();
@@ -144,7 +156,7 @@ void main (string[] args)
         });
 
         idle.attach(null);
-        corr_timeout.attach(null);
+        // corr_timeout.attach(null);
         draw_timeout.attach(null);
 
         Gtk.main ();
