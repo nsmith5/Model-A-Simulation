@@ -21,7 +21,6 @@ using Gsl;
 public class Simulation
 {
     private double[] phi;
-    private double[] phi_cpy;
     private double[] eta;
     private double[] temp;
     private const double D = 1.0;       // Diffusion Constant
@@ -39,7 +38,6 @@ public class Simulation
     {
         // Initialize parameters and fields
         phi = new double[N*N];
-        phi_cpy = new double[N*N];
         eta = new double[N*N];
         temp = new double[N*N];
         r = 0.0;
@@ -69,30 +67,10 @@ public class Simulation
         }
     }
 
-    public void cpy_data ()
-    {
-        for (int i = 0; i<N*N; i++)
-        {
-            phi_cpy[i] = phi[i];
-        }
-    }
-
     public double[] calculate_correlation ()
     {
         double[] correlation = new double[N>>1];
-        for (int l = 0; l<N>>1; l++)
-        {
-            correlation[l] = 0.0;
-            for (int i = 0; i<N; i++)
-            {
-                for (int j = 0; j<N; j++)
-                {
-                    correlation[l] += phi_cpy[i*N + j]*phi_cpy[i*N + (j + l)%N];
-                    correlation[l] += phi_cpy[i*N + j]*phi_cpy[i*N + (j - l + N)%N];
-                }
-            }
-            correlation[l] /= 2*N*N;
-        }
+
         return correlation;
     }
 
